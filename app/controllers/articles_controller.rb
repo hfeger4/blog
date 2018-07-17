@@ -26,6 +26,9 @@ class ArticlesController < ApplicationController
   end
 
   def update
+    if !@article.user
+      @article.user = current_user
+    end
     if @article.update(article_params)
       flash[:success] = "Article was successfully updated"
       redirect_to article_path(@article)
@@ -45,7 +48,7 @@ class ArticlesController < ApplicationController
 
   private
   def article_params
-    params.require(:article).permit(:title, :description)
+    params.require(:article).permit(:title, :description, category_ids: [])
   end
 
   def set_article
@@ -53,7 +56,7 @@ class ArticlesController < ApplicationController
   end
 
   def require_same_user
-    if current_user != @article.user
+    if current_user != @article.user && !current_user.admin?
       flash[:danger] = "You can only edit or delete your own article."
       redirect_to root_path
     end
